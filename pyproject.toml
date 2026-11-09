@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ltp-viewer"
+version = "0.1.0"
+description = "A minimalist web viewer for Linux Test Project (kirk) JSON reports"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+dependencies = ["flask>=2.3"]
+keywords = ["ltp", "linux-test-project", "kirk", "kernel", "testing", "hardening"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Framework :: Flask",
+  "Operating System :: POSIX :: Linux",
+  "Topic :: Software Development :: Testing",
+  "Topic :: System :: Operating System Kernels :: Linux",
+]
+
+[project.urls]
+"Linux Test Project" = "https://github.com/linux-test-project/ltp"
+kirk = "https://github.com/linux-test-project/kirk"
+
+[project.scripts]
+ltp-viewer = "ltpviewer.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ltpviewer*"]
+
+[tool.setuptools.package-data]
+ltpviewer = ["templates/*.html", "static/**/*"]

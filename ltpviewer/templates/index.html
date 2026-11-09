@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>LTP Viewer</title>
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem("ltpv.theme"); } catch (e) {}
+      if (!t) t = window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      document.documentElement.dataset.theme = t;
+    })();
+  </script>
+  {% if inline_css %}
+  <link rel="icon" href="data:image/svg+xml,{{ inline_icon | urlencode }}">
+  <style>{{ inline_css | safe }}</style>
+  {% else %}
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}?v={{ version }}">
+  {% endif %}
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></symbol>
+    <symbol id="i-columns" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8L3 5Z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1 1"/><path d="M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1-1"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+    <symbol id="i-sidebar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+    <symbol id="i-wrap" viewBox="0 0 24 24"><path d="M4 6h16M4 12h13a3 3 0 0 1 0 6h-4m0 0 2-2m-2 2 2 2M4 18h5"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="m7 9 5-5 5 5M7 15l5 5 5-5"/></symbol>
+    <symbol id="i-collapse" viewBox="0 0 24 24"><path d="m7 4 5 5 5-5M7 20l5-5 5 5"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <a class="brand" href="#" id="brand" title="LTP Viewer">
+      <span class="logo" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="brand-name">LTP&nbsp;Viewer</span>
+    </a>
+    <div class="report-pickers">
+      <label class="picker">
+        <span>Report</span>
+        <select id="report-select" aria-label="Report"></select>
+      </label>
+      <label class="picker">
+        <span>Compare with</span>
+        <select id="baseline-select" aria-label="Baseline report"></select>
+      </label>
+    </div>
+    <div class="spacer"></div>
+    <nav class="top-actions">
+      <button class="icon-btn" id="btn-upload" title="Open kirk JSON report(s)" hidden><svg><use href="#i-upload"/></svg></button>
+      <input type="file" id="file-input" accept=".json,application/json" multiple hidden>
+      <button class="icon-btn" id="btn-remove" title="Unload current report" hidden><svg><use href="#i-trash"/></svg></button>
+      <button class="icon-btn" id="btn-link" title="Copy link to this view"><svg><use href="#i-link"/></svg></button>
+      <button class="icon-btn" id="btn-help" title="Keyboard shortcuts &amp; query syntax (?)"><svg><use href="#i-help"/></svg></button>
+      <button class="icon-btn" id="btn-theme" title="Toggle theme (t)"><svg class="when-dark"><use href="#i-sun"/></svg><svg class="when-light"><use href="#i-moon"/></svg></button>
+      <a class="ltp-link" href="https://linux-test-project.readthedocs.io/" target="_blank" rel="noopener" title="Linux Test Project documentation">
+        Linux Test Project <svg><use href="#i-ext"/></svg>
+      </a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section id="empty" class="empty" hidden>
+      <div class="empty-card">
+        <span class="logo big" aria-hidden="true"><i></i><i></i><i></i></span>
+        <h1>No report loaded</h1>
+        <p>Drop a <a href="https://github.com/linux-test-project/kirk" target="_blank" rel="noopener">kirk</a> JSON report anywhere on this page,
+          <span class="upload-only">or <button class="link-btn" id="empty-upload">choose a file</button>,</span>
+          or start the server with a path:</p>
+        <pre>ltp-viewer results.json</pre>
+        <p class="dim">Reports are produced by the <a href="https://github.com/linux-test-project/ltp" target="_blank" rel="noopener">Linux Test Project</a> test suite.</p>
+      </div>
+    </section>
+
+    <section id="overview" class="overview" hidden></section>
+
+    <section id="workspace" class="workspace" hidden>
+      <aside id="sidebar" class="sidebar" aria-label="Filters"></aside>
+      <section class="results">
+        <div class="toolbar">
+          <button class="icon-btn" id="btn-sidebar" title="Toggle filter panel (s)"><svg><use href="#i-sidebar"/></svg></button>
+          <div class="search">
+            <svg class="search-icon"><use href="#i-search"/></svg>
+            <input id="search" type="search" spellcheck="false" autocomplete="off"
+                   placeholder="Search tests…  e.g.  ptrace  errno:EPERM  dur>10  log:hwpoison  -cve" aria-label="Search">
+            <span class="search-state" id="search-state"></span>
+            <button class="toggle mini" id="btn-regex" title="Treat plain words as regular expressions">.*</button>
+          </div>
+          <div class="status-chips" id="status-chips" role="group" aria-label="Status filter"></div>
+          <div class="toolbar-right">
+          <label class="select-wrap" title="Group rows">
+            <span>Group</span>
+            <select id="group-select"></select>
+          </label>
+          <span class="group-tools" id="group-tools" hidden>
+            <button class="icon-btn" id="btn-expand" title="Expand all groups"><svg><use href="#i-expand"/></svg></button>
+            <button class="icon-btn" id="btn-collapse" title="Collapse all groups"><svg><use href="#i-collapse"/></svg></button>
+          </span>
+          <div class="menu-wrap">
+            <button class="icon-btn" id="btn-columns" title="Choose columns" aria-haspopup="true"><svg><use href="#i-columns"/></svg></button>
+            <div class="menu" id="columns-menu" hidden></div>
+          </div>
+          <div class="menu-wrap">
+            <button class="icon-btn" id="btn-export" title="Export visible rows" aria-haspopup="true"><svg><use href="#i-download"/></svg></button>
+            <div class="menu" id="export-menu" hidden></div>
+          </div>
+          </div>
+        </div>
+        <div class="filterbar" id="filterbar"></div>
+        <div class="table-wrap" id="table-wrap">
+          <table class="grid" id="grid">
+            <thead id="grid-head"></thead>
+            <tbody id="grid-body"></tbody>
+          </table>
+          <div class="no-rows" id="no-rows" hidden>
+            <p>No tests match the current filters.</p>
+            <button class="btn" id="btn-clear-all">Clear all filters</button>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <aside id="drawer" class="drawer" aria-label="Test details" hidden>
+    <div class="drawer-resize" id="drawer-resize" title="Drag to resize"></div>
+    <div class="drawer-inner" id="drawer-inner"></div>
+  </aside>
+
+  <footer class="footer">
+    <span>LTP Viewer {{ version }}</span>
+    <span class="sep">·</span>
+    <span>An unofficial viewer for results of the
+      <a href="https://github.com/linux-test-project/ltp" target="_blank" rel="noopener">Linux Test Project</a>
+      produced by <a href="https://github.com/linux-test-project/kirk" target="_blank" rel="noopener">kirk</a>.
+      All credit for the tests goes to the LTP developers.</span>
+  </footer>
+
+  <div id="dropzone" class="dropzone" hidden><div>Drop kirk JSON report(s) to load</div></div>
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <dialog id="help" class="dialog">
+    <div class="dialog-head">
+      <h2>Shortcuts &amp; query syntax</h2>
+      <button class="icon-btn" data-close title="Close"><svg><use href="#i-x"/></svg></button>
+    </div>
+    <div class="help-grid">
+      <section>
+        <h3>Keyboard</h3>
+        <dl class="keys">
+          <dt><kbd>/</kbd></dt><dd>Focus search</dd>
+          <dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>Next / previous test</dd>
+          <dt><kbd>Enter</kbd></dt><dd>Open details</dd>
+          <dt><kbd>Esc</kbd></dt><dd>Close details / leave search</dd>
+          <dt><kbd>1</kbd>…<kbd>5</kbd></dt><dd>Toggle Failed / Broken / Warning / Skipped / Passed</dd>
+          <dt><kbd>p</kbd></dt><dd>Problems only (failed + broken + warnings)</dd>
+          <dt><kbd>0</kbd></dt><dd>Clear all filters</dd>
+          <dt><kbd>g</kbd></dt><dd>Cycle grouping</dd>
+          <dt><kbd>s</kbd></dt><dd>Toggle filter panel</dd>
+          <dt><kbd>o</kbd></dt><dd>Toggle overview</dd>
+          <dt><kbd>t</kbd></dt><dd>Toggle dark / light theme</dd>
+          <dt><kbd>?</kbd></dt><dd>This help</dd>
+        </dl>
+      </section>
+      <section>
+        <h3>Search</h3>
+        <p>Words are AND-ed and matched against name, command, family and reason.
+          Prefix with <code>-</code> to exclude. Quote phrases: <code>"not supported"</code>.</p>
+        <dl class="keys">
+          <dt><code>status:fail</code></dt><dd>fail, brok, warn, conf (skip), pass</dd>
+          <dt><code>name:ptrace</code></dt><dd>Test name contains</dd>
+          <dt><code>family:</code> <code>sub:</code></dt><dd>Family / subsystem contains</dd>
+          <dt><code>reason:"locked down"</code></dt><dd>Reason message contains</dd>
+          <dt><code>errno:EPERM</code></dt><dd>Errno of the reason</dd>
+          <dt><code>cmd:-n</code></dt><dd>Command line contains</dd>
+          <dt><code>kconfig:SCHED</code></dt><dd>Unsatisfied kernel config contains</dd>
+          <dt><code>dur&gt;10</code> <code>dur&lt;0.5</code></dt><dd>Duration in seconds</dd>
+          <dt><code>exit:32</code> <code>failed&gt;0</code></dt><dd>Exit code, subtest counters (passed, failed, broken, skipped, warnings)</dd>
+          <dt><code>change:regressed</code></dt><dd>When comparing: regressed, fixed, changed, new, missing, same</dd>
+          <dt><code>log:hwpoison</code></dt><dd>Full-text search inside test logs</dd>
+        </dl>
+        <p class="dim">Toggle <code>.*</code> to treat plain words and <code>log:</code> terms as regular expressions.</p>
+      </section>
+    </div>
+  </dialog>
+
+  {% if static_data %}<script>window.__LTP_STATIC__ = {{ static_data | safe }};</script>{% endif %}
+  {% if inline_js %}
+  <script>{{ inline_js | safe }}</script>
+  {% else %}
+  <script src="{{ url_for('static', filename='js/app.js') }}?v={{ version }}"></script>
+  {% endif %}
+</body>
+</html>
